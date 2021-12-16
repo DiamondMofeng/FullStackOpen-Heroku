@@ -66,7 +66,7 @@ app.get('/api/persons', (request, response) => {
 
   Person.find({})
     .then(result => {
-      console.log(result)
+      // console.log(result)
       if (result) {
         response.json(result)
       } else {
@@ -96,21 +96,20 @@ app.get('/api/persons/:id', (request, response, next) => {
     })
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
-  // get name,number   and generate an id  then save
-  // function getRandomInt(min, max) {
-  //   min = Math.ceil(min);
-  //   max = Math.floor(max);
-  //   return Math.floor(Math.random() * (max - min)) + min; //不含最大值，含最小值
-  // }
   if (!body.name || !body.number) {
-    response.status(400).json({ error: 'request must have a name and number' }).end()
+    response.status(400).json({ error: 'request must have a name and number' })
+      .end()
   }
-  if (persons.find(p => p.name === body.name)) {
-    response.status(400).json({ error: 'this name is already existed' }).end()
+
+  if (Person.find({ name: { $eq: body.name } })) {
+    response.status(400).json({ error: 'this person is already existed on server' })
+      .end()
+    return
   }
+
   const person = new Person({
     // id: getRandomInt(0, 9999),
     name: body.name,
@@ -119,18 +118,46 @@ app.post('/api/persons', (request, response) => {
   // persons = persons.concat(person)
   // console.log(body)
   // console.log(person)
-  person.save().then(
-    savedPerson => response.json(savedPerson)
-  )
+  person.save()
+    .then(
+      savedPerson => response.json(savedPerson)
+    )
+    .catch(
+      err => next(err)
+    )
 
 
 })
-//have not updated
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+  console.log(body)
+  const person = {
+    name: body.name,
+    number: body.number,
+  }
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then(result => {
+      if (result) {
+        console.log(result)
+        response.status(200).json(result)
+      } else {
+        response.status(404).json({ error: "Fail to locate this person on server", })
+      }
+
+    })
+    .catch(err => {
+      console.log(err)
+      next(err)
+    })
+})
+
+
+
 app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
   Person.findByIdAndRemove(id)
     .then(result => {
-      persons = persons.filter(p => p.id !== id)
       response.status(204).end()
     })
     .catch(error => next(error))
