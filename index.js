@@ -17,8 +17,8 @@ app.listen(PORT, () => {
 })
 
 
-//morgan.token('bodyJson', function (req, res) { return JSON.stringify(req.body) })
-//app.use(morgan(':method :url :status :res[content-length] - :response-time ms :bodyJson'))
+morgan.token('bodyJson', function (req, res) { return JSON.stringify(req.body) })
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :bodyJson'))
 
 
 
@@ -75,12 +75,21 @@ app.get('/api/persons/:id', (request, response) => {
   const id = request.params.id
   //old
   // const person = persons.find(person => person.id === id)
-  const person = Person.find({ _id: { $eq: id } }).then(result => {
-    console.log(result)
-    //should this be [0]?
-    response.json(result[0])
-  }
-  )
+  const person = Person.findById(id)
+    .then(result => {
+      // console.log(result)
+      if (result) {
+        // console.log(result)
+        response.json(result)
+      }
+      else {
+        console.log("123")
+        response.json({ error: 'there is no person with this id' })
+      }
+    })
+    .catch(error => {
+      console.log(error)
+    })
   // console.log(person)
   // if (person) {
   //   response.json(person)
@@ -120,9 +129,14 @@ app.post('/api/persons', (request, response) => {
 
 })
 //have not updated
-app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(p => p.id !== id)
-  response.status(204).end()
+app.delete('/api/persons/:id', (request, response,next) => {
+  const id = request.params.id
+  Person.findByIdAndRemove(id)
+    .then(result => {
+      persons = persons.filter(p => p.id !== id)
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 })
+
 
