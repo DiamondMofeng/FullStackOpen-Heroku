@@ -10,7 +10,7 @@ app.use(express.static('build'))
 app.use(express.json())
 app.use(cors())
 //use morgan
-morgan.token('bodyJson', function (req, res) { return JSON.stringify(req.body) })
+morgan.token('bodyJson', function (req) { return JSON.stringify(req.body) })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :bodyJson'))
 
 
@@ -50,7 +50,7 @@ app.listen(PORT, () => {
 // }
 // ]
 
-app.get('/api/info', (request, response) => {
+app.get('/api/info', (request, response, next) => {
   Person.find({})
     .then(result => {
       let personsLength = result.length
@@ -61,7 +61,7 @@ app.get('/api/info', (request, response) => {
 })
 
 
-app.get('/api/persons', (request, response) => {
+app.get('/api/persons', (request, response, next) => {
 
   Person.find({})
     .then(result => {
@@ -79,7 +79,7 @@ app.get('/api/persons', (request, response) => {
 
 app.get('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
-  const person = Person.findById(id)
+  Person.findById(id)
     .then(result => {
       // console.log(result)
       if (result) {
@@ -116,9 +116,9 @@ app.post('/api/persons', (request, response, next) => {
     )
     .catch(
       err => {
-        // console.log(err)
-        // console.log(err.name)
-        // console.log(Object.entries(err))
+        console.log(err)
+        console.log(err.name)
+        console.log(Object.entries(err))
         next(err)
       }
     )
@@ -155,7 +155,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
   Person.findByIdAndRemove(id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))
@@ -175,6 +175,7 @@ const unknownEndpoint = (request, response) => {
 // handler of requests with unknown endpoint
 app.use(unknownEndpoint)
 
+// eslint-disable-next-line no-unused-vars
 const errorHandler = (error, request, response, next) => {
   // response.status(404).send({ error: 'unknown endpoint' })
   if (error.name === 'CastError' && error.kind === 'ObjectId') {

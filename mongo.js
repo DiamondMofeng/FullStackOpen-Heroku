@@ -60,7 +60,7 @@ else {
     number: number,
   })
   mongoose.connect(url)
-  person.save().then(result => {
+  person.save().then(() => {
     console.log('person saved!')
     mongoose.connection.close()
   })
