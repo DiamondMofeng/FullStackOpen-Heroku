@@ -28,7 +28,7 @@ app.listen(PORT, () => {
 
 
 
-let persons = [
+// let persons = [
   // {
   //   "id": 1,
   //   "name": "1mofeng",
@@ -49,7 +49,7 @@ let persons = [
   //   "name": "4Mary Poppendieck",
   //   "number": "39-23-6423122"
   // }
-]
+// ]
 
 app.get('/api/info', (request, response) => {
   Person.find({})
