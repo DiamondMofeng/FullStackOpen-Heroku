@@ -129,6 +129,10 @@ app.post('/api/persons', (request, response, next) => {
 app.put('/api/persons/:id', (request, response, next) => {
   const body = request.body
   console.log(body)
+  if (body.name.length < 3 || body.number.length < 8) {
+    response.status(400).json({ error: 'request must have a name with at lease 3 char and a number with at least 8 numbers' })
+    return
+  }
   const person = {
     name: body.name,
     number: body.number,
